@@ -1,156 +1,144 @@
-<h1>Angular PayPal</h1>
+<h1>Amicale laique Abbaretz</h1>
+
+<h2 class="mt-2">
+  Vente de sapins de noël
+</h2>
+
+<div class="mt-2">
+  <pre>Chers parents,
+
+Noël approche et nous vous proposons l’achat de sapins de Noël de la gamme Nordmann (provenance Redon). Grâce à cette
+action, vous participerez directement au financement des projets de classes de vos enfants… alors, n’hésitez pas à en parler
+aux papys, mamies, amis, collègues ou voisins !!!
+
+Les sapins seront à retirer auprès de notre magasin partenaire AGRI-NORD 44 (2, rte du Moulin à Vent, à Puceul / rte NozayNort sur Erdre).
+
+Nous vous communiquerons la date à partir de laquelle vous pourrez retirer vos sapins ainsi que le bon de retrait via les
+pochettes de liaison des élèves et e-primo.
+
+Merci d’avance pour votre investissement !
+L’Amicale laïque d’Abbaretz
+  </pre>
+</div>
 
 <div class="mt-2" *ngIf="showSuccess">
   <div class="alert alert-success mt-2">
-    Yeah! Your <em>sandbox</em> transaction was successful.
+    Félicitations votre <em>sandbox</em> transaction a pu être effectué. Votre commande est prise en compte. Merci.
   </div>
 </div>
 
 <div class="mt-2" *ngIf="showError">
   <div class="alert alert-danger mt-2">
-    Oh no! Your <em>sandbox</em> transaction failed.
+    Votre <em>sandbox</em> transaction a échoué. Aucun prélèvement ne sera effectué. Votre commande n'a pas été prise en
+    compte.
   </div>
 </div>
 
 <div class="mt-2" *ngIf="showCancel">
   <div class="alert alert-info mt-2">
-    Your transaction was cancelled.
+    Votre transaction a été annulée
   </div>
 </div>
 
-<div class="mt-2">
-  <div class="alert alert-info mt-2" role="alert">
-    This Angular library is based on <a href="https://developer.paypal.com/docs/checkout/#try-the-buttons">PayPal's
-      Javascript SDK</a>. It does not support each and every feature of the JavaScript SDK so feel free to submit issues
-    or PRs.
+<form>
+  <h2>Elève vendeur</h2>
+  <hr/>
+  <div class="flex-container">
+    <mat-form-field appearance="fill">
+      <mat-label>Nom</mat-label>
+      <input matInput type="text" placeholder="Pierre">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Prénom</mat-label>
+      <input matInput type="text" placeholder="Dupont">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Classe</mat-label>
+      <mat-select matNativeControl [(ngModel)]="selectedClasse" name="classe">
+        <mat-option *ngFor="let classe of classes" [value]="classe">
+          {{classe.value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Téléphone</mat-label>
+      <input matInput type="tel" placeholder="0606040302">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Saisissez votre e-mail</mat-label>
+      <input matInput placeholder="pat@example.com" [formControl]="email" required>
+      <mat-error *ngIf="email.invalid">{{getErrorMessage()}}</mat-error>
+    </mat-form-field>
   </div>
-</div>
 
-<div class="mt-2">
-  I strongly recommend checking out PayPal's <a
-    href="https://developer.paypal.com/docs/checkout/#try-the-buttons">official docs</a> if you want to learn more about
-  the flow of checkout process and meaning behind certain properties.
-</div>
+  <h2>Commande</h2>
+  <hr/>
 
-<h2 class="mt-4">
-  Live Preview
-</h2>
+  <ng-container>
+    <div class="flex-container">
+      <div class="item">
+        <h3>Choix du sapin</h3>
+        <mat-form-field appearance="fill">
+          <mat-label>Sapin sélectionné</mat-label>
+          <mat-select [(ngModel)]="selectedSapin" name="sapin">
+            <mat-option *ngFor="let sapin of sapins" [value]="sapin">
+              {{sapin.viewValue}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button class="btn btn-secondary" (click)="ajoutSapin(selectedSapin)">Ajouter</button>
+      </div>
+
+      <div class="item">
+        <h3>Choix de la bûche</h3>
+        <mat-form-field appearance="fill">
+          <mat-label>Buche sélectionnée</mat-label>
+          <mat-select matNativeControl [(ngModel)]="selectedBuche" name="buche">
+            <mat-option *ngFor="let buche of buches" [value]="buche">
+              {{buche.viewValue}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button class="btn btn-secondary" (click)="ajoutBuche(selectedBuche)">Ajouter</button>
+      </div>
+    </div>
+  </ng-container>
+
+</form>
+
+<h2>Panier</h2>
+<hr/>
+<ng-container>
+  <table class="table">
+    <thead class="thead-dark">
+    <tr>
+      <th>Produit</th>
+      <th>Choix</th>
+      <th>Prix</th>
+      <th>Quantité</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let sapin of cart.sapins">
+      <td>Sapin</td>
+      <td>{{sapin.value}}</td>
+      <td>{{(sapin.price / 100).toFixed(2)}}€</td>
+      <td>{{sapin.quantity}}</td>
+    </tr>
+    <tr *ngFor="let buche of cart.buches">
+      <td>Buche</td>
+      <td>{{buche.value}}</td>
+      <td>{{(buche.price / 100).toFixed(2)}}€</td>
+      <td>{{buche.quantity}}</td>
+    </tr>
+    </tbody>
+  </table>
+
+  <p class="total-price">Total : {{getTotalPrice()}}€</p>
+  <button class="btn btn-primary" (click)="changePrice()">Payer</button>
+</ng-container>
 
 <div class="mt-2">
   <ngx-paypal [config]="payPalConfig"></ngx-paypal>
-</div>
-
-<h2 class="mt-4">
-  Price
-</h2>
-
-<div class="mt-2">
-  Price: <input [value]="defaultPrice" type="text" #priceElem> <button (click)="changePrice()">Set</button>
-</div>
-
-<h2 class="mt-4">
-  Installation
-</h2>
-
-<div class="mt-2">
-  <pre>
-        <code [innerText]="npmCode"></code>
-        <code [innerText]="moduleInstallation"></code>
-    </pre>
-</div>
-
-<h2>
-  Usage
-</h2>
-
-<div class="mt-2">
-  <pre>
-        <code [innerText]="usageCodeTs"></code>
-        <code [innerText]="htmlCode"></code>
-    </pre>
-</div>
-
-<h2>
-  Configuration (
-  <em>PayPalConfig</em>)
-</h2>
-
-<div class="mt-2">
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Property</th>
-        <th scope="col">Type</th>
-        <th scope="col">Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><strong>clientId</strong></td>
-        <td>string</td>
-        <td>Id of your PayPal account</td>
-      </tr>
-      <tr>
-        <td><strong>onApprove</strong></td>
-        <td>(data, actions) => void</td>
-        <td>Executed when PayPal transaction was approved (but not authorized)</td>
-      </tr>
-      <tr>
-        <td><strong>createOrderOnClient</strong></td>
-        <td>(data) => ICreateOrderRequest</td>
-        <td>Use to create order on client. Either this, or 'createOrderOnServer' need to be defined</td>
-      </tr>
-      <tr>
-        <td><strong>createOrderOnServer</strong></td>
-        <td>(data) => Promise&lt;string></td>
-        <td>Use to create order on server. Either this, or 'createOrderOnClient' need to be defined</td>
-      </tr>
-      <tr>
-        <td>onClientAuthorization</td>
-        <td>(authorization) => any</td>
-        <td>Called when client authorization completes. Use this to notify your server about payment.</td>
-      </tr>
-      <tr>
-        <td>authorizeOnServer</td>
-        <td>(data, actions) => any</td>
-        <td>If set, you should authorize payment on your server. Default client authorization is not used in this case.
-        </td>
-      </tr>
-      <tr>
-        <td>currency</td>
-        <td>string</td>
-        <td>PayPal's currency. Defaults to USD</td>
-      </tr>
-      <tr>
-        <td>button</td>
-        <td>IPayPalButtonStyle</td>
-        <td>Button configuration</td>
-      </tr>
-      <tr>
-        <td>onError</td>
-        <td>(err) => void</td>
-        <td>Called when PayPal experiences an error</td>
-      </tr>
-      <tr>
-        <td>onCancel</td>
-        <td>(data, actions) => void</td>
-        <td>Called when payment is cancelled</td>
-      </tr>
-      <tr>
-        <td>onClick</td>
-        <td>() => void</td>
-        <td>Called when user clicks on PayPal button</td>
-      </tr>
-      <tr>
-        <td>onShippingChange</td>
-        <td>(data, actions) => any</td>
-        <td>OnShippingChange callback as per <a target="_blank" href="https://developer.paypal.com/docs/checkout/integration-features/shipping-callback/">https://developer.paypal.com/docs/checkout/integration-features/shipping-callback/</a></td>
-      </tr>
-      <tr>
-        <td>advanced</td>
-        <td>IAdvancedConfiguration</td>
-        <td>Advanced configuration</td>
-      </tr>
-    </tbody>
-  </table>
 </div>

@@ -1,0 +1,14 @@
+.flex-container {
+  display: flex; /* or inline-flex */
+  justify-content: space-between;
+}
+
+.item {
+  flex-grow: 1;
+}
+
+.total-price {
+  font-size: 1.3em;
+  font-weight: bold;
+  text-align: end;
+}
