@@ -1,5 +1,6 @@
 .flex-container {
   display: flex; /* or inline-flex */
+  flex-wrap: wrap;
   justify-content: space-between;
 }
 
@@ -11,4 +12,8 @@
   font-size: 1.3em;
   font-weight: bold;
   text-align: end;
+}
+
+#pay {
+  margin-bottom: 2em;
 }

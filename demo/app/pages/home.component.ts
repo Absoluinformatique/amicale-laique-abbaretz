@@ -1,22 +1,23 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
-import { ICreateOrderRequest, IPayPalConfig } from '../../../projects/ngx-paypal-lib/src/public_api';
+import {ICreateOrderRequest, IPayPalConfig, ITransactionItem} from '../../../projects/ngx-paypal-lib/src/public_api';
 import {FormControl, Validators} from '@angular/forms';
 
 declare var hljs: any;
 
 
 interface Classe {
-  value: string
+  value: string;
 }
 
 interface Eleve {
-  nom: string
-  prenom: string
-  classe: Classe
+  nom: string;
+  prenom: string;
+  classe: Classe;
 }
 
 interface Sapin {
+  id: number;
   value: string;
   viewValue: string;
   price: number;
@@ -24,6 +25,7 @@ interface Sapin {
 }
 
 interface Buche {
+  id: number;
   value: string;
   viewValue: string;
   price: number;
@@ -41,16 +43,15 @@ interface Cart {
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements AfterViewInit, OnInit {
-  public defaultPrice: string = '9.99';
   public payPalConfig?: IPayPalConfig;
 
   public showSuccess: boolean = false;
   public showCancel: boolean = false;
   public showError: boolean = false;
+  public showPayment: boolean = false;
   public readonly npmCode = `npm install ngx-paypal --save`;
 
 
-  email = new FormControl('', [Validators.required, Validators.email]);
   eleve: Eleve;
   selectedClasse: Classe;
   selectedBuche: Buche;
@@ -58,6 +59,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
   cart: Cart;
 
   classes: Classe[] = [
+    {value: 'Sélectionner'},
     {value: 'PS'},
     {value: 'MS'},
     {value: 'GS'},
@@ -66,36 +68,28 @@ export class HomeComponent implements AfterViewInit, OnInit {
     {value: 'CE2'},
     {value: 'CM1'},
     {value: 'CM2'}
-  ]
+  ];
 
   sapins: Sapin[] = [
-    {value: 'Sans - 0€', viewValue: 'Sans - 0€', price: 0, quantity: 1 },
-    {value: '125/150cm diamètre 50', viewValue: '125/150cm diamètre 50 - 20€', price: 2000, quantity: 1 },
-    {value: '150/175cm diamètre 50', viewValue: '150/175cm diamètre 50 - 25€', price: 2500, quantity: 1 },
-    {value: '175/200cm diamètre 50', viewValue: '175/200cm diamètre 50 - 30€', price: 3000, quantity: 1 }
+    {id: 10, value: 'Sans - 0€', viewValue: 'Sans - 0€', price: 0, quantity: 1 },
+    {id: 11, value: '125/150cm diamètre 50', viewValue: '125/150cm diamètre 50 - 20€', price: 2000, quantity: 1 },
+    {id: 12, value: '150/175cm diamètre 50', viewValue: '150/175cm diamètre 50 - 25€', price: 2500, quantity: 1 },
+    {id: 13, value: '175/200cm diamètre 50', viewValue: '175/200cm diamètre 50 - 30€', price: 3000, quantity: 1 }
   ];
   buches: Buche[] = [
-    {value: 'Sans', viewValue: 'Sans - 0€', price: 0, quantity: 1 },
-    {value: 'Diamètre 50', viewValue: 'Diamètre 50 - 4,50€', price : 450, quantity: 1 }
+    {id: 20, value: 'Sans', viewValue: 'Sans - 0€', price: 0, quantity: 1 },
+    {id: 22, value: 'Diamètre 50', viewValue: 'Diamètre 50 - 4,50€', price : 450, quantity: 1 }
   ];
 
   constructor() {
-    this.eleve = {nom: '', prenom: '', classe: this.classes[0]}
-    this.selectedSapin = this.sapins[0]
-    this.selectedBuche = this.buches[0]
+    this.eleve = {nom: '', prenom: '', classe: this.classes[0]};
+    this.selectedSapin = this.sapins[0];
+    this.selectedBuche = this.buches[0];
     this.cart = {
       sapins: [],
       buches: []
-    }
-    this.selectedClasse = this.classes[0]
-  }
-
-  getErrorMessage() {
-    if (this.email.hasError('required')) {
-      return 'Vous devez saisir une adresse mail';
-    }
-
-    return this.email.hasError('email') ? 'Merci de saisir une adresse mail valide' : '';
+    };
+    this.selectedClasse = this.classes[0];
   }
 
   getTotalPrice() {
@@ -113,13 +107,15 @@ export class HomeComponent implements AfterViewInit, OnInit {
   }
 
   ajoutSapin(selectedSapin: Sapin) {
+    this.showPayment = false;
+
     if (selectedSapin === this.sapins[0]) {
       return;
     }
     let sapinAlreadyPresent = false;
     for (const sapin of this.cart.sapins) {
-      if(selectedSapin === sapin) {
-        sapin.quantity += 1
+      if (selectedSapin === sapin) {
+        sapin.quantity += 1;
         sapinAlreadyPresent = true;
       }
     }
@@ -129,14 +125,16 @@ export class HomeComponent implements AfterViewInit, OnInit {
   }
 
   ajoutBuche(selectedBuche: Buche) {
+    this.showPayment = false;
+
     if (selectedBuche === this.buches[0]) {
       return;
     }
     let bucheAlreadyPresent = false;
     for (const buche of this.cart.buches) {
       if (this.selectedBuche === buche) {
-        buche.quantity += 1
-        bucheAlreadyPresent = true
+        buche.quantity += 1;
+        bucheAlreadyPresent = true;
       }
     }
     if (!bucheAlreadyPresent) {
@@ -144,100 +142,8 @@ export class HomeComponent implements AfterViewInit, OnInit {
     }
   }
 
-  public readonly moduleInstallation = `
-  import { NgxPayPalModule } from 'ngx-paypal';
-
-  @NgModule({
-    imports: [
-      NgxPayPalModule,
-      ...
-    ],
-  })
-  `;
-
-  public readonly initPaypalCode = `this.payPalConfig = {
-      currency: 'EUR',
-      clientId: 'AbD6q330sVV8dEIs1u9Uwy0qUK10YNwEIfeaiqu0TRc0EbJ2RQIp2v29phESxbp05YkyLbaYpW2ZYYvk',
-      createOrderOnClient: (data) => <ICreateOrderRequest>{
-        intent: 'CAPTURE',
-        purchase_units: [
-          {
-            amount: {
-              currency_code: 'EUR',
-              value: get,
-              breakdown: {
-                item_total: {
-                  currency_code: 'EUR',
-                  value: '9.99'
-                }
-              }
-            },
-            items: [
-              {
-                name: 'Enterprise Subscription',
-                quantity: '1',
-                category: 'DIGITAL_GOODS',
-                unit_amount: {
-                  currency_code: 'EUR',
-                  value: '9.99',
-                },
-              }
-            ]
-          }
-        ]
-      },
-      advanced: {
-        commit: 'true'
-      },
-      style: {
-        label: 'paypal',
-        layout: 'vertical'
-      },
-      onApprove: (data, actions) => {
-        console.log('onApprove - transaction was approved, but not authorized', data, actions);
-        actions.order.get().then(details => {
-          console.log('onApprove - you can get full order details inside onApprove: ', details);
-        });
-      },
-      onClientAuthorization: (data) => {
-        console.log('onClientAuthorization - you should probably inform your server about completed transaction at this point', data);
-        this.showSuccess = true;
-      },
-      onCancel: (data, actions) => {
-        console.log('OnCancel', data, actions);
-      },
-      onError: err => {
-        console.log('OnError', err);
-      },
-      onClick: (data, actions) => {
-        console.log('onClick', data, actions);
-      },
-    };`;
-
-  public readonly htmlCode = `<ngx-paypal [config]="payPalConfig"></ngx-paypal>`;
-
-  public readonly usageCodeTs = `
-  import { Component, OnInit } from '@angular/core';
-  import { IPayPalConfig, ICreateOrderRequest } from 'ngx-paypal';
-
-  @Component({
-    templateUrl: './your.component.html',
-  })
-  export class YourComponent implements OnInit {
-
-    public payPalConfig?: IPayPalConfig;
-
-    ngOnInit(): void {
-      this.initConfig();
-    }
-
-    private initConfig(): void {
-      ${this.initPaypalCode}
-    }
-  }
-  `;
-
   ngOnInit(): void {
+    this.initConfig(this.sapins, this.buches, '0.00');
   }
 
   ngAfterViewInit(): void {
@@ -247,14 +153,65 @@ export class HomeComponent implements AfterViewInit, OnInit {
   changePrice(): void {
     const price = this.getTotalPrice();
     if (price) {
-      this.initConfig(price);
+      this.showPayment = true;
+      this.initConfig(this.cart.sapins, this.cart.buches, price);
     }
   }
 
-  private initConfig(price: string): void {
+  private generateItems(sapins: Sapin[], buches: Buche[]) {
+
+    const items: ITransactionItem[] = [];
+
+    for (const sapin of sapins) {
+      items.push({
+        name: sapin.value,
+        quantity: sapin.quantity.toString(),
+        category: 'DIGITAL_GOODS',
+        unit_amount: {
+          currency_code: 'EUR',
+          value: (sapin.price / 100).toFixed(2).valueOf()
+        }
+      });
+    }
+
+    for (const buche of buches) {
+      items.push({
+        name: buche.value,
+        quantity: buche.quantity.toString(),
+        category: 'DIGITAL_GOODS',
+        unit_amount: {
+          currency_code: 'EUR',
+          value: (buche.price / 100).toFixed(2).toString()
+        },
+        description: buche.viewValue,
+        sku: buche.id.toString()
+      });
+    }
+
+    if (items.length === 0) {
+      items.push({
+          name: sapins[0].value,
+          quantity: sapins[0].quantity.toString(),
+          category: 'DIGITAL_GOODS',
+          unit_amount: {
+            currency_code: 'EUR',
+            value: (sapins[0].price / 100).toFixed(2).toString()
+          },
+        description: sapins[0].viewValue,
+        sku: '10'
+      });
+    }
+
+    return items;
+  }
+
+  private initConfig(sapins: Sapin[], buches: Buche[], price: string): void {
+
+    const items = this.generateItems(sapins, buches);
+
     this.payPalConfig = {
       currency: 'EUR',
-      clientId: 'sb',
+      clientId: 'AbD6q330sVV8dEIs1u9Uwy0qUK10YNwEIfeaiqu0TRc0EbJ2RQIp2v29phESxbp05YkyLbaYpW2ZYYvk',
       createOrderOnClient: (data) => <ICreateOrderRequest>{
         intent: 'CAPTURE',
         purchase_units: [
@@ -269,17 +226,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
                 }
               }
             },
-            items: [
-              {
-                name: 'Enterprise Subscription',
-                quantity: '1',
-                category: 'DIGITAL_GOODS',
-                unit_amount: {
-                  currency_code: 'EUR',
-                  value: price,
-                },
-              }
-            ]
+            items: items
           }
         ]
       },
@@ -290,6 +237,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
         label: 'paypal',
         layout: 'vertical'
       },
+
       onApprove: (data, actions) => {
         console.log('onApprove - transaction was approved, but not authorized', data, actions);
         actions.order.get().then((details: any) => {

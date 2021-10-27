@@ -21,40 +21,21 @@ L’Amicale laïque d’Abbaretz
   </pre>
 </div>
 
-<div class="mt-2" *ngIf="showSuccess">
-  <div class="alert alert-success mt-2">
-    Félicitations votre <em>sandbox</em> transaction a pu être effectué. Votre commande est prise en compte. Merci.
-  </div>
-</div>
-
-<div class="mt-2" *ngIf="showError">
-  <div class="alert alert-danger mt-2">
-    Votre <em>sandbox</em> transaction a échoué. Aucun prélèvement ne sera effectué. Votre commande n'a pas été prise en
-    compte.
-  </div>
-</div>
-
-<div class="mt-2" *ngIf="showCancel">
-  <div class="alert alert-info mt-2">
-    Votre transaction a été annulée
-  </div>
-</div>
-
 <form>
   <h2>Elève vendeur</h2>
   <hr/>
   <div class="flex-container">
     <mat-form-field appearance="fill">
       <mat-label>Nom</mat-label>
-      <input matInput type="text" placeholder="Pierre">
+      <input matInput type="text" placeholder="Pierre" required>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Prénom</mat-label>
-      <input matInput type="text" placeholder="Dupont">
+      <input matInput type="text" placeholder="Dupont" required>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Classe</mat-label>
-      <mat-select matNativeControl [(ngModel)]="selectedClasse" name="classe">
+      <mat-select matNativeControl [(ngModel)]="selectedClasse" name="classe" required>
         <mat-option *ngFor="let classe of classes" [value]="classe">
           {{classe.value}}
         </mat-option>
@@ -63,11 +44,6 @@ L’Amicale laïque d’Abbaretz
     <mat-form-field appearance="fill">
       <mat-label>Téléphone</mat-label>
       <input matInput type="tel" placeholder="0606040302">
-    </mat-form-field>
-    <mat-form-field appearance="fill">
-      <mat-label>Saisissez votre e-mail</mat-label>
-      <input matInput placeholder="pat@example.com" [formControl]="email" required>
-      <mat-error *ngIf="email.invalid">{{getErrorMessage()}}</mat-error>
     </mat-form-field>
   </div>
 
@@ -136,9 +112,30 @@ L’Amicale laïque d’Abbaretz
   </table>
 
   <p class="total-price">Total : {{getTotalPrice()}}€</p>
-  <button class="btn btn-primary" (click)="changePrice()">Payer</button>
+
+  <button id="pay" class="btn btn-primary" *ngIf="!showSuccess" (click)="changePrice()">Payer</button>
 </ng-container>
 
-<div class="mt-2">
+<div class="mt-2" *ngIf="showPayment && !showSuccess">
   <ngx-paypal [config]="payPalConfig"></ngx-paypal>
+</div>
+
+
+<div class="mt-2" *ngIf="showSuccess">
+  <div class="alert alert-success mt-2">
+    Félicitations votre transaction a été effectuée. Votre commande est prise en compte. Merci.
+  </div>
+</div>
+
+<div class="mt-2" *ngIf="showError">
+  <div class="alert alert-danger mt-2">
+    Votre transaction a échoué. Aucun prélèvement ne sera effectué. Votre commande n'a pas été prise en
+    compte. Aucun prélèvement ne sera effectué.
+  </div>
+</div>
+
+<div class="mt-2" *ngIf="showCancel">
+  <div class="alert alert-info mt-2">
+    Votre transaction a été annulée. Aucun prélèvement ne sera effectué.
+  </div>
 </div>
