@@ -8,6 +8,10 @@
   flex-grow: 1;
 }
 
+.ajouter {
+  margin-left: 2em;
+}
+
 .total-price {
   font-size: 1.3em;
   font-weight: bold;

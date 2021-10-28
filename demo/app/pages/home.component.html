@@ -62,7 +62,7 @@ L’Amicale laïque d’Abbaretz
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="btn btn-secondary" (click)="ajoutSapin(selectedSapin)">Ajouter</button>
+        <button class="btn btn-secondary ajouter" (click)="ajoutSapin(selectedSapin)">Ajouter</button>
       </div>
 
       <div class="item">
@@ -75,7 +75,7 @@ L’Amicale laïque d’Abbaretz
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button class="btn btn-secondary" (click)="ajoutBuche(selectedBuche)">Ajouter</button>
+        <button class="btn btn-secondary ajouter" (click)="ajoutBuche(selectedBuche)">Ajouter</button>
       </div>
     </div>
   </ng-container>
@@ -111,12 +111,12 @@ L’Amicale laïque d’Abbaretz
     </tbody>
   </table>
 
-  <p class="total-price">Total : {{getTotalPrice()}}€</p>
+  <p class="total-price">Total : {{getTotalPrice()}} €</p>
 
   <button id="pay" class="btn btn-primary" *ngIf="!showSuccess" (click)="changePrice()">Payer</button>
 </ng-container>
 
-<div class="mt-2" *ngIf="showPayment && !showSuccess">
+<div class="mt-2" *ngIf="showPayment && !showSuccess && (getTotalPrice() !== '0.00')">
   <ngx-paypal [config]="payPalConfig"></ngx-paypal>
 </div>
 

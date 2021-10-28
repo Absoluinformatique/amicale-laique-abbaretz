@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 
 import {ICreateOrderRequest, IPayPalConfig, ITransactionItem} from '../../../projects/ngx-paypal-lib/src/public_api';
 import {FormControl, Validators} from '@angular/forms';
@@ -81,7 +81,10 @@ export class HomeComponent implements AfterViewInit, OnInit {
     {id: 22, value: 'Diamètre 50', viewValue: 'Diamètre 50 - 4,50€', price : 450, quantity: 1 }
   ];
 
-  constructor() {
+  private changeDetectorRef: ChangeDetectorRef;
+
+  constructor(private cdr: ChangeDetectorRef) {
+    this.changeDetectorRef = cdr;
     this.eleve = {nom: '', prenom: '', classe: this.classes[0]};
     this.selectedSapin = this.sapins[0];
     this.selectedBuche = this.buches[0];
@@ -211,7 +214,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
 
     this.payPalConfig = {
       currency: 'EUR',
-      clientId: 'AbD6q330sVV8dEIs1u9Uwy0qUK10YNwEIfeaiqu0TRc0EbJ2RQIp2v29phESxbp05YkyLbaYpW2ZYYvk',
+      clientId: 'Ae87cXrMsFkqYekLVxNFNAkPcj3DJgk6M0FkQ6Jpa5WRCkF0RdsmKVy9j-MWnpxjg7-3MjdZKnjmOw5n',
       createOrderOnClient: (data) => <ICreateOrderRequest>{
         intent: 'CAPTURE',
         purchase_units: [
@@ -243,24 +246,26 @@ export class HomeComponent implements AfterViewInit, OnInit {
         actions.order.get().then((details: any) => {
           console.log('onApprove - you can get full order details inside onApprove: ', details);
         });
-
       },
       onClientAuthorization: (data) => {
         console.log('onClientAuthorization - you should probably inform your server about completed transaction at this point', data);
         this.showSuccess = true;
+        this.changeDetectorRef.detectChanges();
       },
       onCancel: (data, actions) => {
         console.log('OnCancel', data, actions);
         this.showCancel = true;
-
+        this.changeDetectorRef.detectChanges();
       },
       onError: err => {
         console.log('OnError', err);
         this.showError = true;
+        this.changeDetectorRef.detectChanges();
       },
       onClick: (data, actions) => {
         console.log('onClick', data, actions);
         this.resetStatus();
+        this.changeDetectorRef.detectChanges();
       },
       onInit: (data, actions) => {
         console.log('onInit', data, actions);
