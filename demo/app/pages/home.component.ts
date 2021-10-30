@@ -1,7 +1,7 @@
 import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 
 import {ICreateOrderRequest, IPayPalConfig, ITransactionItem} from '../../../projects/ngx-paypal-lib/src/public_api';
-import {FormControl, Validators} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 
 declare var hljs: any;
 
@@ -43,6 +43,25 @@ interface Cart {
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements AfterViewInit, OnInit {
+
+  constructor(private cdr: ChangeDetectorRef, private formBuilder: FormBuilder) {
+    this.changeDetectorRef = cdr;
+    this.eleve = {nom: '', prenom: '', classe: this.classes[0]};
+    this.selectedSapin = this.sapins[0];
+    this.selectedBuche = this.buches[0];
+    this.cart = {
+      sapins: [],
+      buches: []
+    };
+    this.selectedClasse = this.classes[0];
+    this.confirmNoShipping = false;
+    this.form = this.formBuilder.group({
+      acceptTerms: [false, Validators.requiredTrue]
+    });
+  }
+
+  // convenience getter for easy access to form fields
+  get f() { return this.form.controls; }
   public payPalConfig?: IPayPalConfig;
 
   public showSuccess: boolean = false;
@@ -82,17 +101,59 @@ export class HomeComponent implements AfterViewInit, OnInit {
   ];
 
   private changeDetectorRef: ChangeDetectorRef;
+  confirmNoShipping: false;
+  form: FormGroup;
+  submitted = false;
 
-  constructor(private cdr: ChangeDetectorRef) {
-    this.changeDetectorRef = cdr;
-    this.eleve = {nom: '', prenom: '', classe: this.classes[0]};
-    this.selectedSapin = this.sapins[0];
-    this.selectedBuche = this.buches[0];
-    this.cart = {
-      sapins: [],
-      buches: []
-    };
-    this.selectedClasse = this.classes[0];
+  private static generateItems(sapins: Sapin[], buches: Buche[]) {
+
+    const items: ITransactionItem[] = [];
+
+    for (const sapin of sapins) {
+      items.push({
+        name: sapin.value,
+        quantity: sapin.quantity.toString(),
+        category: 'DIGITAL_GOODS',
+        unit_amount: {
+          currency_code: 'EUR',
+          value: (sapin.price / 100).toFixed(2).valueOf()
+        }
+      });
+    }
+
+    for (const buche of buches) {
+      items.push({
+        name: buche.value,
+        quantity: buche.quantity.toString(),
+        category: 'DIGITAL_GOODS',
+        unit_amount: {
+          currency_code: 'EUR',
+          value: (buche.price / 100).toFixed(2).toString()
+        },
+        description: buche.viewValue,
+        sku: buche.id.toString()
+      });
+    }
+
+    if (items.length === 0) {
+      items.push({
+          name: sapins[0].value,
+          quantity: sapins[0].quantity.toString(),
+          category: 'DIGITAL_GOODS',
+          unit_amount: {
+            currency_code: 'EUR',
+            value: (sapins[0].price / 100).toFixed(2).toString()
+          },
+        description: sapins[0].viewValue,
+        sku: '10'
+      });
+    }
+
+    return items;
+  }
+
+  private static prettify(): void {
+    hljs.initHighlightingOnLoad();
   }
 
   getTotalPrice() {
@@ -145,15 +206,40 @@ export class HomeComponent implements AfterViewInit, OnInit {
     }
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.initConfig(this.sapins, this.buches, '0.00');
   }
 
+  onSubmit() {
+    this.submitted = true;
+
+    // stop here if form is invalid
+    if (this.form.invalid) {
+      return;
+    }
+
+    // display form values on success
+    this.changePrice();
+  }
+
+  onReset() {
+    this.submitted = false;
+    this.form.reset();
+  }
+
   ngAfterViewInit(): void {
-    this.prettify();
+    HomeComponent.prettify();
   }
 
   changePrice(): void {
+    const price = this.getTotalPrice();
+    if (price) {
+      this.showPayment = false;
+      this.initConfig(this.cart.sapins, this.cart.buches, price);
+    }
+  }
+
+  pay() {
     const price = this.getTotalPrice();
     if (price) {
       this.showPayment = true;
@@ -161,61 +247,14 @@ export class HomeComponent implements AfterViewInit, OnInit {
     }
   }
 
-  private generateItems(sapins: Sapin[], buches: Buche[]) {
-
-    const items: ITransactionItem[] = [];
-
-    for (const sapin of sapins) {
-      items.push({
-        name: sapin.value,
-        quantity: sapin.quantity.toString(),
-        category: 'DIGITAL_GOODS',
-        unit_amount: {
-          currency_code: 'EUR',
-          value: (sapin.price / 100).toFixed(2).valueOf()
-        }
-      });
-    }
-
-    for (const buche of buches) {
-      items.push({
-        name: buche.value,
-        quantity: buche.quantity.toString(),
-        category: 'DIGITAL_GOODS',
-        unit_amount: {
-          currency_code: 'EUR',
-          value: (buche.price / 100).toFixed(2).toString()
-        },
-        description: buche.viewValue,
-        sku: buche.id.toString()
-      });
-    }
-
-    if (items.length === 0) {
-      items.push({
-          name: sapins[0].value,
-          quantity: sapins[0].quantity.toString(),
-          category: 'DIGITAL_GOODS',
-          unit_amount: {
-            currency_code: 'EUR',
-            value: (sapins[0].price / 100).toFixed(2).toString()
-          },
-        description: sapins[0].viewValue,
-        sku: '10'
-      });
-    }
-
-    return items;
-  }
-
   private initConfig(sapins: Sapin[], buches: Buche[], price: string): void {
 
-    const items = this.generateItems(sapins, buches);
+    const items = HomeComponent.generateItems(sapins, buches);
 
     this.payPalConfig = {
       currency: 'EUR',
       clientId: 'AVhfKvtREGc8tTS8ktHEqea3a3CbkVeP7Y4v_69EqyXL7y-KghJVIAaDypvUcoCMCDLH8SuawXxEAdIH',
-      createOrderOnClient: (data) => <ICreateOrderRequest>{
+      createOrderOnClient: () => <ICreateOrderRequest>{
         intent: 'CAPTURE',
         purchase_units: [
           {
@@ -279,16 +318,13 @@ export class HomeComponent implements AfterViewInit, OnInit {
     this.showCancel = false;
   }
 
-  private prettify(): void {
-    hljs.initHighlightingOnLoad();
-  }
-
   supprimerSapin(sapin: Sapin) {
     const selectedSapin = this.cart.sapins[this.cart.sapins.findIndex(item => item.id === sapin.id)];
     selectedSapin.quantity --;
     if (selectedSapin.quantity === 0) {
       this.cart.sapins.splice(this.cart.sapins.findIndex(item => item.id === sapin.id), 1);
     }
+    this.changePrice();
   }
 
   supprimerBuche(buche: Buche) {
@@ -297,5 +333,6 @@ export class HomeComponent implements AfterViewInit, OnInit {
     if (selectedSapin.quantity === 0) {
       this.cart.buches.splice(this.cart.buches.findIndex(item => item.id === buche.id), 1);
     }
+    this.changePrice();
   }
 }
