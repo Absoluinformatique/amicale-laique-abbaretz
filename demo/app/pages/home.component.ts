@@ -214,7 +214,7 @@ export class HomeComponent implements AfterViewInit, OnInit {
 
     this.payPalConfig = {
       currency: 'EUR',
-      clientId: 'Ae87cXrMsFkqYekLVxNFNAkPcj3DJgk6M0FkQ6Jpa5WRCkF0RdsmKVy9j-MWnpxjg7-3MjdZKnjmOw5n',
+      clientId: 'AVhfKvtREGc8tTS8ktHEqea3a3CbkVeP7Y4v_69EqyXL7y-KghJVIAaDypvUcoCMCDLH8SuawXxEAdIH',
       createOrderOnClient: (data) => <ICreateOrderRequest>{
         intent: 'CAPTURE',
         purchase_units: [
@@ -281,5 +281,21 @@ export class HomeComponent implements AfterViewInit, OnInit {
 
   private prettify(): void {
     hljs.initHighlightingOnLoad();
+  }
+
+  supprimerSapin(sapin: Sapin) {
+    const selectedSapin = this.cart.sapins[this.cart.sapins.findIndex(item => item.id === sapin.id)];
+    selectedSapin.quantity --;
+    if (selectedSapin.quantity === 0) {
+      this.cart.sapins.splice(this.cart.sapins.findIndex(item => item.id === sapin.id), 1);
+    }
+  }
+
+  supprimerBuche(buche: Buche) {
+    const selectedSapin = this.cart.buches[this.cart.buches.findIndex(item => item.id === buche.id)];
+    selectedSapin.quantity --;
+    if (selectedSapin.quantity === 0) {
+      this.cart.buches.splice(this.cart.buches.findIndex(item => item.id === buche.id), 1);
+    }
   }
 }

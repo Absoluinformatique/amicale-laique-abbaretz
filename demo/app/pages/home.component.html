@@ -5,20 +5,16 @@
 </h2>
 
 <div class="mt-2">
-  <pre>Chers parents,
-
-Noël approche et nous vous proposons l’achat de sapins de Noël de la gamme Nordmann (provenance Redon). Grâce à cette
-action, vous participerez directement au financement des projets de classes de vos enfants… alors, n’hésitez pas à en parler
-aux papys, mamies, amis, collègues ou voisins !!!
-
-Les sapins seront à retirer auprès de notre magasin partenaire AGRI-NORD 44 (2, rte du Moulin à Vent, à Puceul / rte NozayNort sur Erdre).
-
-Nous vous communiquerons la date à partir de laquelle vous pourrez retirer vos sapins ainsi que le bon de retrait via les
-pochettes de liaison des élèves et e-primo.
-
-Merci d’avance pour votre investissement !
-L’Amicale laïque d’Abbaretz
-  </pre>
+  <p>Chers parents,</p>
+  <p>Noël approche et nous vous proposons l’achat de sapins de Noël de la gamme Nordmann (provenance Redon). Grâce à
+    cette action, vous participerez directement au financement des projets de classes de vos enfants… alors, n’hésitez pas à
+    en parler aux papys, mamies, amis, collègues ou voisins !!!</p>
+  <p>Les sapins seront à retirer auprès de notre magasin partenaire AGRI-NORD 44 (2, rte du Moulin à Vent, à Puceul /
+    rte NozayNort sur Erdre).</p>
+  <p>Nous vous communiquerons la date à partir de laquelle vous pourrez retirer vos sapins ainsi que le bon de retrait via les
+    pochettes de liaison des élèves et e-primo.</p>
+  <p>Merci d’avance pour votre investissement !
+    L’Amicale laïque d’Abbaretz</p>
 </div>
 
 <form>
@@ -92,6 +88,7 @@ L’Amicale laïque d’Abbaretz
       <th>Choix</th>
       <th>Prix</th>
       <th>Quantité</th>
+      <th>Supprimer</th>
     </tr>
     </thead>
 
@@ -101,12 +98,18 @@ L’Amicale laïque d’Abbaretz
       <td>{{sapin.value}}</td>
       <td>{{(sapin.price / 100).toFixed(2)}}€</td>
       <td>{{sapin.quantity}}</td>
+      <td>
+        <button class="btn btn-danger deleteItem" (click)="supprimerSapin(sapin)">X</button>
+      </td>
     </tr>
     <tr *ngFor="let buche of cart.buches">
       <td>Buche</td>
       <td>{{buche.value}}</td>
       <td>{{(buche.price / 100).toFixed(2)}}€</td>
       <td>{{buche.quantity}}</td>
+      <td>
+        <button class="btn btn-danger deleteItem" (click)="supprimerBuche(buche)">X</button>
+      </td>
     </tr>
     </tbody>
   </table>
