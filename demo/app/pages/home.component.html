@@ -116,13 +116,18 @@
 
   <p class="total-price">Total : {{getTotalPrice()}} €</p>
 
-  <button id="pay" class="btn btn-primary" *ngIf="!showSuccess" (click)="changePrice()">Payer</button>
+  <div class="form-group form-check">
+    <input type="checkbox" [(ngModel)]="confirmNoShipping" id="acceptTerms" class="flexCheckDefault form-check-input"/>
+    <label for="acceptTerms" class="form-check-label">J'ai bien compris que les sapins sont à retirer à Puceul avec un bon qui sera remis à l'école Lous Davy à Abbaretz.</label>
+    <div *ngIf="confirmNoShipping === false" class="invalid-feedback">Vous devez accepter les conditions de retrait</div>
+  </div>
+
+  <button id="pay" class="btn btn-primary" *ngIf="!showSuccess" [disabled]="!confirmNoShipping" (click)="pay()">Payer</button>
+
+  <div class="mt-2" *ngIf="showPayment && !showSuccess && confirmNoShipping && (getTotalPrice() !== '0.00')">
+    <ngx-paypal [config]="payPalConfig"></ngx-paypal>
+  </div>
 </ng-container>
-
-<div class="mt-2" *ngIf="showPayment && !showSuccess && (getTotalPrice() !== '0.00')">
-  <ngx-paypal [config]="payPalConfig"></ngx-paypal>
-</div>
-
 
 <div class="mt-2" *ngIf="showSuccess">
   <div class="alert alert-success mt-2">
